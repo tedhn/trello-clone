@@ -14,9 +14,9 @@ export const userRouter = createTRPCRouter({
       });
 
       if (user) {
-        return { email: user.email, isAuthenticated: true };
+        return { email: user.email, id: user.id, isAuthenticated: true };
       } else {
-        return { email: "", isAuthenticated: false };
+        return { email: "", id: "", isAuthenticated: false };
       }
     }),
 });

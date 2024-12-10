@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import { useAtom } from "jotai";
 import {
   TextInput,
@@ -23,25 +23,35 @@ export default function Login() {
 
   const loginMutation = api.user.login.useMutation();
 
-  if (auth.isAuthenticated) {
-    router.push("/dashboard");
-  }
-
-  const handleSubmit = async (e: any) => {
+  // Handle form submission
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(""); // Clear previous errors
     loginMutation.mutate({ email, password });
   };
 
+  // Handle login success or failure
   useEffect(() => {
-    if (loginMutation.data?.isAuthenticated) {
-      setAuth({ email, isAuthenticated: true });
+    if (loginMutation.isSuccess && loginMutation.data?.isAuthenticated) {
+      const { email, id } = loginMutation.data;
+      setAuth({ email, id, isAuthenticated: true });
       router.push("/dashboard");
     }
-  }, [loginMutation.isPending]);
+
+    if (loginMutation.isError) {
+      setError("Invalid email or password"); // Set custom error message
+    }
+  }, [
+    loginMutation.isSuccess,
+    loginMutation.isError,
+    loginMutation.data,
+    router,
+    setAuth,
+  ]);
 
   return (
     <Container size={420} my={40}>
-      <Title mb={30}>Welcome Back! {auth.email}</Title>
+      <Title mb={30}>Welcome Back!</Title>
 
       <Paper p="lg" shadow="xs">
         <form onSubmit={handleSubmit}>
