@@ -1,9 +1,12 @@
 import "~/styles/globals.css";
+import "@mantine/core/styles.css";
 
 import { GeistSans } from "geist/font/sans";
 import { type Metadata } from "next";
 
 import { TRPCReactProvider } from "~/trpc/react";
+import { Providers } from "./_components/providers";
+import { MantineProvider } from "@mantine/core";
 
 export const metadata: Metadata = {
   title: "Create T3 App",
@@ -15,9 +18,13 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${GeistSans.variable}`}>
+    <html lang="en" className={`${GeistSans.variable} m-4`}>
       <body>
-        <TRPCReactProvider>{children}</TRPCReactProvider>
+        <MantineProvider>
+          <Providers>
+            <TRPCReactProvider>{children}</TRPCReactProvider>
+          </Providers>
+        </MantineProvider>
       </body>
     </html>
   );
