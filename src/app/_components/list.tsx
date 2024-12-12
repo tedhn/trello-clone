@@ -16,18 +16,32 @@ import { Task } from "@prisma/client";
 import TaskComponent from "./task";
 import { ListWithTasks } from "~/server/types";
 import { deleteListModalAtom, editListModalAtom } from "../atoms/atoms";
+import { api } from "~/trpc/react";
 
 type Props = {
   list: ListWithTasks;
   isOpacityEnabled?: boolean;
   isDragging?: boolean;
+  openCreateTaskModal: () => void;
 } & HTMLAttributes<HTMLDivElement>;
 
 const ListComponent = forwardRef<HTMLDivElement, Props>(
-  ({ list, isOpacityEnabled, isDragging, style, ...props }, ref) => {
+  (
+    {
+      list,
+      isOpacityEnabled,
+      isDragging,
+      style,
+      openCreateTaskModal,
+      ...props
+    },
+    ref,
+  ) => {
     const { tasks } = list;
     const [_, setDeleteListAtom] = useAtom(deleteListModalAtom);
     const [__, setEditListAtom] = useAtom(editListModalAtom);
+
+    const createTaskMutation = api.list.create.useMutation();
 
     const styles: CSSProperties = {
       opacity: isOpacityEnabled ? "0.4" : "1",
@@ -116,6 +130,7 @@ const ListComponent = forwardRef<HTMLDivElement, Props>(
             leftSection={<IconPlus />}
             variant="subtle"
             className="mb-0 w-full"
+            onClick={openCreateTaskModal}
           >
             Add Task
           </Button>

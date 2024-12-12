@@ -6,9 +6,10 @@ import { ListWithTasks } from "~/server/types";
 
 type Props = {
   list: ListWithTasks;
+  openCreateTaskModal: () => void;
 } & HTMLAttributes<HTMLDivElement>;
 
-const SortableList = ({ list, ...props }: Props) => {
+const SortableList = ({ list, openCreateTaskModal, ...props }: Props) => {
   const {
     attributes,
     isDragging,
@@ -32,6 +33,7 @@ const SortableList = ({ list, ...props }: Props) => {
         style={styles}
         isOpacityEnabled={isDragging}
         {...props}
+        openCreateTaskModal={openCreateTaskModal}
       />
     </div>
   );

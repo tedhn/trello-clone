@@ -26,3 +26,11 @@ export const deleteListModalAtom = atom<{
   isOpen: false,
   listId: null,
 });
+
+export const createTaskModalAtom = atom<{
+  isOpen: boolean;
+  listId: string | null;
+}>({
+  isOpen: false,
+  listId: null,
+});

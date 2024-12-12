@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { IconPlus } from "@tabler/icons-react";
 import {
   authAtom,
+  createTaskModalAtom,
   deleteListModalAtom,
   editListModalAtom,
   listAtom,
@@ -36,6 +37,7 @@ import {
 } from "@dnd-kit/sortable";
 import { ListWithTasks } from "~/server/types";
 import SortableList from "../_components/SortableList";
+import CreateTaskModal from "../_components/modals/createTaskModal";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -47,6 +49,7 @@ export default function Dashboard() {
     isCreateListModalOpen,
     { open: openCreateListModal, close: closeCreateListModal },
   ] = useDisclosure(false);
+  const [createTaskAtom, setCreateTaskAtom] = useAtom(createTaskModalAtom);
 
   // for input methods detection
   const sensors = useSensors(
@@ -169,13 +172,23 @@ export default function Dashboard() {
                   strategy={horizontalListSortingStrategy}
                 >
                   {lists.map((list) => (
-                    <SortableList list={list} key={list.id} />
+                    <SortableList
+                      list={list}
+                      key={list.id}
+                      openCreateTaskModal={() =>
+                        setCreateTaskAtom({ isOpen: true, listId: list.id })
+                      }
+                    />
                   ))}
                 </SortableContext>
 
                 <DragOverlay adjustScale style={{ transformOrigin: "0 0 " }}>
                   {draggingList ? (
-                    <List list={draggingList} isDragging />
+                    <List
+                      list={draggingList}
+                      isDragging
+                      openCreateTaskModal={() => {}}
+                    />
                   ) : null}
                 </DragOverlay>
               </DndContext>
@@ -204,6 +217,10 @@ export default function Dashboard() {
         close={() =>
           setEditListAtom({ isOpen: false, listId: null, list: null })
         }
+      />
+      <CreateTaskModal
+        opened={createTaskAtom.isOpen}
+        close={() => setCreateTaskAtom({ isOpen: false, listId: null })}
       />
     </div>
   );
