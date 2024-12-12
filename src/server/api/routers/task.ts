@@ -66,7 +66,7 @@ export const taskRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const { taskId, listId, index, done } = input;
+      const { taskId, ...query } = input;
 
       // Find the task within the given list
       const task = await ctx.db.task.findFirst({
@@ -83,7 +83,7 @@ export const taskRouter = createTRPCRouter({
       // Update the task's index and 'done' status
       const updatedTask = await ctx.db.task.update({
         where: { id: task.id }, // Update task by its ID
-        data: { listId: listId }, // Data to be updated
+        data: query, // Data to be updated
       });
 
       // Return the updated task

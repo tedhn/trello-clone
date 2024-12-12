@@ -131,12 +131,13 @@ export default function Dashboard() {
           };
         }
         if (list.id === destinationList.id) {
+          const newTask = sourceList.tasks.filter((task) => task.id === id)[0]!;
+
+          newTask.listId = destinationList.id;
+
           return {
             ...list,
-            tasks: [
-              ...list.tasks,
-              sourceList.tasks.filter((task) => task.id === id)[0]!,
-            ],
+            tasks: [...list.tasks, newTask],
           };
         }
 
