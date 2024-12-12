@@ -50,10 +50,10 @@ export default function Login() {
   ]);
 
   return (
-    <Container size={420} my={40}>
-      <Title mb={30}>Welcome Back!</Title>
+    <div className=" w-full bg-blue-100">
+      <Title  className="text-center mb-12">Welcome Back!</Title>
 
-      <Paper p="lg" shadow="xs">
+      <Paper p="lg" shadow="xs" w={400} className="mx-auto">
         <form onSubmit={handleSubmit}>
           <TextInput
             label="Email"
@@ -84,6 +84,6 @@ export default function Login() {
           </Button>
         </form>
       </Paper>
-    </Container>
+    </div>
   );
 }

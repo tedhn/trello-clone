@@ -5,7 +5,7 @@ const AddListPlaceHolder: React.FC<{ openCreateListModal: () => void }> = ({
   openCreateListModal,
 }) => (
   <div
-    className="flex h-fit min-h-96 w-80 flex-col items-center justify-start rounded-md p-2 cursor-pointer border-2 border-dashed border-black/10 hover:bg-white/10 hover:shadow-lg"
+    className="flex flex-none h-full min-h-96 w-80 flex-col items-center justify-start rounded-md p-2 cursor-pointer border-2 border-dashed border-black/10 hover:bg-white/10 hover:shadow-lg"
     onClick={openCreateListModal}
   >
     <Button

@@ -161,7 +161,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="h-full w-full bg-blue-100">
+    <div className="h-screen w-full  bg-blue-100">
       <div className="flex items-center justify-between text-center">
         <Title> Welcome to your Dashboard!</Title>
         <Button color="red" onClick={handleLogout}>
@@ -178,13 +178,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Handle Error State */}
-      {isError && (
-        <Text className="text-center text-red-500" mt={20}>
-          Failed to load lists: {error.message}
-        </Text>
-      )}
-      <div className="mt-8">
+      <div className="mt-8 h-full">
         {/* Render List Data */}
         {lists && lists.length > 0 ? (
           <>

@@ -45,15 +45,13 @@ const ListComponent: React.FC<Props> = ({
       strategy={verticalListSortingStrategy}
     >
       <Paper
-        className="flex h-fit min-h-96 w-80 flex-col items-center justify-start shadow-lg"
+        className="flex h-full w-80 flex-none flex-col items-center justify-start shadow-lg"
         p="md"
         radius="md"
         ref={setNodeRef}
       >
         <div className="flex w-full items-center justify-between">
-          <h1 className="p-2">
-            {list.name} + {list.index}
-          </h1>
+          <h1 className="p-2">{list.name}</h1>
 
           <Menu shadow="md" offset={16}>
             <Menu.Target>

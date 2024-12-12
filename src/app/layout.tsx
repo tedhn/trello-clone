@@ -19,7 +19,10 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${GeistSans.variable} m-4 bg-blue-100`}>
+    <html
+      lang="en"
+      className={`${GeistSans.variable} m-4 overflow-x-auto overflow-y-hidden bg-blue-100`}
+    >
       <body>
         <MantineProvider>
           <Providers>
