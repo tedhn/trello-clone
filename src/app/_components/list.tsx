@@ -1,9 +1,4 @@
-import React, {
-  CSSProperties,
-  ForwardedRef,
-  forwardRef,
-  HTMLAttributes,
-} from "react";
+import React, { HTMLAttributes } from "react";
 import {
   IconDotsVertical,
   IconEdit,
@@ -13,131 +8,125 @@ import {
 import { useAtom } from "jotai";
 import { ActionIcon, Button, Menu, Paper, rem } from "@mantine/core";
 import { Task } from "@prisma/client";
-import TaskComponent from "./task";
 import { ListWithTasks } from "~/server/types";
 import { deleteListModalAtom, editListModalAtom } from "../atoms/atoms";
-import { api } from "~/trpc/react";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import DraggableTask from "./draggableTask";
+import { useDroppable } from "@dnd-kit/core";
 
 type Props = {
   list: ListWithTasks;
-  isOpacityEnabled?: boolean;
-  isDragging?: boolean;
   openCreateTaskModal: () => void;
 } & HTMLAttributes<HTMLDivElement>;
 
-const ListComponent = forwardRef<HTMLDivElement, Props>(
-  (
-    {
-      list,
-      isOpacityEnabled,
-      isDragging,
-      style,
-      openCreateTaskModal,
-      ...props
+const ListComponent: React.FC<Props> = ({
+  list,
+
+  openCreateTaskModal,
+}) => {
+  const { tasks } = list;
+  const [_, setDeleteListAtom] = useAtom(deleteListModalAtom);
+  const [__, setEditListAtom] = useAtom(editListModalAtom);
+
+  const { setNodeRef, isOver, over } = useDroppable({
+    id: list.id,
+    data: {
+      listId: list.id,
     },
-    ref,
-  ) => {
-    const { tasks } = list;
-    const [_, setDeleteListAtom] = useAtom(deleteListModalAtom);
-    const [__, setEditListAtom] = useAtom(editListModalAtom);
+  });
 
-    const createTaskMutation = api.list.create.useMutation();
+  return (
+    <SortableContext
+      id={list.id}
+      items={tasks}
+      strategy={verticalListSortingStrategy}
+    >
+      <Paper
+        className="flex h-fit min-h-96 w-80 flex-col items-center justify-start shadow-lg"
+        p="md"
+        radius="md"
+        ref={setNodeRef}
+      >
+        <div className="flex w-full items-center justify-between">
+          <h1 className="p-2">
+            {list.name} + {list.index}
+          </h1>
 
-    const styles: CSSProperties = {
-      opacity: isOpacityEnabled ? "0.4" : "1",
-      cursor: isDragging ? "grabbing" : "grab",
-      lineHeight: "0.5",
-      transform: isDragging ? "scale(1.05)" : "scale(1)",
-      ...style,
-    };
+          <Menu shadow="md" offset={16}>
+            <Menu.Target>
+              <ActionIcon
+                variant="white"
+                color="black"
+                aria-label="menu"
+                radius="md"
+                className="size-3"
+              >
+                <IconDotsVertical style={{ width: "60%", height: "60%" }} />
+              </ActionIcon>
+            </Menu.Target>
 
-    return (
-      <div ref={ref} style={styles} {...props}>
-        <Paper
-          className="flex h-fit min-h-96 w-64 flex-col items-center justify-start shadow-lg"
-          p="md"
-          radius="md"
+            <Menu.Dropdown>
+              <Menu.Item
+                color="green"
+                leftSection={
+                  <IconEdit style={{ width: rem(14), height: rem(14) }} /> // Use an edit icon
+                }
+                className="text-sm"
+                onClick={() =>
+                  setEditListAtom({
+                    isOpen: true,
+                    listId: list.id,
+                    list: list,
+                  })
+                }
+              >
+                Edit list
+              </Menu.Item>
+              <Menu.Item
+                color="red"
+                leftSection={
+                  <IconTrash style={{ width: rem(14), height: rem(14) }} />
+                }
+                className="text-sm"
+                onClick={() =>
+                  setDeleteListAtom({ isOpen: true, listId: list.id })
+                }
+              >
+                Delete list
+              </Menu.Item>
+            </Menu.Dropdown>
+          </Menu>
+        </div>
+
+        {/* <Divider /> */}
+        {/* </div> */}
+
+        <div className="w-full flex-grow py-4 pb-2">
+          {tasks.length !== 0 ? (
+            tasks.map((task: Task) => (
+              <DraggableTask task={task} key={task.id} />
+            ))
+          ) : (
+            <p className="my-auto text-center text-sm text-slate-400">
+              {isOver ? "" : "No tasks yet"}
+            </p>
+          )}
+        </div>
+
+        <Button
+          leftSection={<IconPlus />}
+          variant="subtle"
+          className="mb-0 w-full"
+          onClick={openCreateTaskModal}
         >
-          <div className="flex w-full items-center justify-between">
-            <h1 className="p-2">
-              {list.name} + {list.index}
-            </h1>
-
-            <Menu shadow="md" offset={16}>
-              <Menu.Target>
-                <ActionIcon
-                  variant="white"
-                  color="black"
-                  aria-label="menu"
-                  radius="md"
-                  className="size-3"
-                >
-                  <IconDotsVertical style={{ width: "60%", height: "60%" }} />
-                </ActionIcon>
-              </Menu.Target>
-
-              <Menu.Dropdown>
-                <Menu.Item
-                  color="green"
-                  leftSection={
-                    <IconEdit style={{ width: rem(14), height: rem(14) }} /> // Use an edit icon
-                  }
-                  className="text-sm"
-                  onClick={() =>
-                    setEditListAtom({
-                      isOpen: true,
-                      listId: list.id,
-                      list: list,
-                    })
-                  }
-                >
-                  Edit list
-                </Menu.Item>
-                <Menu.Item
-                  color="red"
-                  leftSection={
-                    <IconTrash style={{ width: rem(14), height: rem(14) }} />
-                  }
-                  className="text-sm"
-                  onClick={() =>
-                    setDeleteListAtom({ isOpen: true, listId: list.id })
-                  }
-                >
-                  Delete list
-                </Menu.Item>
-              </Menu.Dropdown>
-            </Menu>
-          </div>
-
-          {/* <Divider /> */}
-          {/* </div> */}
-
-          <section className="w-full flex-grow pb-2">
-            <div className="py-4">
-              {tasks.length !== 0 ? (
-                tasks.map((task: Task) => (
-                  <TaskComponent task={task} key={task.id} />
-                ))
-              ) : (
-                <p className="my-auto text-center text-sm text-slate-400">
-                  No tasks
-                </p>
-              )}
-            </div>
-          </section>
-
-          <Button
-            leftSection={<IconPlus />}
-            variant="subtle"
-            className="mb-0 w-full"
-            onClick={openCreateTaskModal}
-          >
-            Add Task
-          </Button>
-        </Paper>
-      </div>
-    );
-  },
-);
+          Add Task
+        </Button>
+      </Paper>
+    </SortableContext>
+  );
+};
 
 export default ListComponent;

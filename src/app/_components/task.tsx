@@ -1,5 +1,4 @@
 import { Checkbox } from "@mantine/core";
-import { atom, useAtom } from "jotai";
 import React, { useState } from "react";
 import { Task } from "~/server/types";
 import { taskModal } from "./modals/taskModals";
@@ -9,7 +8,7 @@ const TaskComponent: React.FC<{ task: Task }> = ({ task }) => {
 
   return (
     <div
-      className="flex items-center justify-between rounded-md p-2 hover:bg-slate-400/10"
+      className="mb-2 flex h-full w-full items-center justify-between rounded-md border-2 border-slate-300 bg-white p-2 hover:bg-slate-400/10"
       onClick={() => taskModal(task)}
     >
       <div>

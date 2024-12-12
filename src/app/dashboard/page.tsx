@@ -1,9 +1,8 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { Button, Title, Text, Loader, Paper } from "@mantine/core";
+import { Button, Title, Text, Loader } from "@mantine/core";
 import { useAtom } from "jotai";
 import { useEffect, useRef, useState } from "react";
-import { IconPlus } from "@tabler/icons-react";
 import {
   authAtom,
   createTaskModalAtom,
@@ -19,9 +18,10 @@ import AddListPlaceHolder from "./addListPlaceHolder";
 import DeleteListModal from "../_components/modals/deleteListModal";
 import EditListModal from "../_components/modals/editListModal";
 import {
-  closestCenter,
+  closestCorners,
   DndContext,
   DragEndEvent,
+  DragOverEvent,
   DragOverlay,
   DragStartEvent,
   PointerSensor,
@@ -29,15 +29,9 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import {
-  arrayMove,
-  horizontalListSortingStrategy,
-  rectSortingStrategy,
-  SortableContext,
-} from "@dnd-kit/sortable";
-import { ListWithTasks } from "~/server/types";
-import SortableList from "../_components/SortableList";
+import { ListWithTasks, Task } from "~/server/types";
 import CreateTaskModal from "../_components/modals/createTaskModal";
+import DraggableTask from "../_components/draggableTask";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -56,9 +50,10 @@ export default function Dashboard() {
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(TouchSensor, { activationConstraint: { distance: 5 } }),
   );
-  const [draggingList, setDraggingList] = useState<ListWithTasks | null>(null);
+  const [draggingTask, setDragginTask] = useState<Task | null>(null);
 
   const swapIndexMutation = api.list.swapIndex.useMutation();
+  const updateTaskMutation = api.task.update.useMutation();
   const firstRender = useRef(true);
 
   // Fetch the list using TRPC query
@@ -83,53 +78,86 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (!isError && !isLoading && data) {
-      console.log(data);
       setLists([...data]);
     }
   }, [isLoading]);
 
-  // triggered when dragging starts
-  const handleDragStart = (event: DragStartEvent) => {
-    console.log("starting drag");
-
+  function handleDragStart(event: DragStartEvent) {
     const { active } = event;
+    const { id } = active;
+    const containerId = active.data.current?.sortable.containerId;
 
-    const currentList = lists.filter((list) => list.id === active.id)[0]!;
+    const list = lists.filter(
+      (item: ListWithTasks) => item.id === containerId,
+    )[0]!;
 
-    console.log(currentList);
-    setDraggingList(currentList);
-  };
+    const task = list.tasks.filter((item: Task) => item.id === id)[0]!;
 
-  // triggered when dragging ends
-  const handleDragEnd = (event: DragEndEvent) => {
-    console.log("ending drag");
+    setDragginTask(task);
+  }
+
+  function handleDragOver(event: DragOverEvent) {
     const { active, over } = event;
+    const { id } = active;
 
-    if (active.id !== over?.id) {
-      const oldIndex = lists.findIndex((list) => list.id === active.id);
-      const newIndex = lists.findIndex((list) => list.id === over?.id);
+    const prevContainerId = active.data.current?.sortable
+      ? active.data.current.sortable.containerId
+      : active.data.current?.listId;
+    const newContainerId = over?.data.current?.sortable
+      ? over.data.current.sortable.containerId
+      : over?.data.current?.listId;
 
-      swapIndexMutation.mutate(
-        { userId: auth.id, id: draggingList!.id, index: newIndex },
-        {
-          onSuccess: (data) => {
-            console.log("List created:", data);
-            setLists((lists) => {
-              return arrayMove(lists!, oldIndex, newIndex);
-            });
-            setDraggingList(null);
-          },
-          onError: (error) => {
-            console.error("Error creating list:", error);
-          },
-        },
-      );
+    if (
+      !prevContainerId ||
+      !newContainerId ||
+      prevContainerId === newContainerId
+    ) {
+      return;
     }
-  };
+    // Find the source and destination lists
+    const sourceList = lists.find(
+      (item: ListWithTasks) => item.id === prevContainerId,
+    )!;
+    const destinationList = lists.find(
+      (item: ListWithTasks) => item.id === newContainerId,
+    )!;
 
-  const handleDragCancel = () => {
-    setDraggingList(null);
-  };
+    setLists((prev) => {
+      const newList = prev.map((list) => {
+        if (list.id === sourceList.id) {
+          return {
+            ...list,
+            tasks: sourceList.tasks.filter((task) => task.id !== id),
+          };
+        }
+        if (list.id === destinationList.id) {
+          return {
+            ...list,
+            tasks: [
+              ...list.tasks,
+              sourceList.tasks.filter((task) => task.id === id)[0]!,
+            ],
+          };
+        }
+
+        return list;
+      });
+
+      return newList;
+    });
+  }
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    const { id } = active;
+    const { id: overId } = over!;
+
+    const newContainerId = over?.data.current?.sortable
+      ? over.data.current.sortable.containerId
+      : over?.data.current?.listId;
+
+    updateTaskMutation.mutate({ listId: newContainerId, taskId: id + "" }, {});
+  }
 
   return (
     <div className="h-full w-full bg-blue-100">
@@ -162,32 +190,26 @@ export default function Dashboard() {
             <ul className="flex items-start justify-start gap-4">
               <DndContext
                 sensors={sensors}
-                collisionDetection={closestCenter}
+                collisionDetection={closestCorners}
                 onDragStart={handleDragStart}
+                onDragOver={handleDragOver}
                 onDragEnd={handleDragEnd}
-                onDragCancel={handleDragCancel}
               >
-                <SortableContext
-                  items={lists.map((list) => list.id)}
-                  strategy={horizontalListSortingStrategy}
-                >
-                  {lists.map((list) => (
-                    <SortableList
-                      list={list}
-                      key={list.id}
-                      openCreateTaskModal={() =>
-                        setCreateTaskAtom({ isOpen: true, listId: list.id })
-                      }
-                    />
-                  ))}
-                </SortableContext>
+                {lists.map((list) => (
+                  <List
+                    list={list}
+                    key={list.id}
+                    openCreateTaskModal={() =>
+                      setCreateTaskAtom({ isOpen: true, listId: list.id })
+                    }
+                  />
+                ))}
 
                 <DragOverlay adjustScale style={{ transformOrigin: "0 0 " }}>
-                  {draggingList ? (
-                    <List
-                      list={draggingList}
-                      isDragging
-                      openCreateTaskModal={() => {}}
+                  {draggingTask ? (
+                    <DraggableTask
+                      task={draggingTask}
+                      // isDragging
                     />
                   ) : null}
                 </DragOverlay>
