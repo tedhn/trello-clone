@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation";
 import { Button, Title, Text, Loader, Paper } from "@mantine/core";
 import { useAtom } from "jotai";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { IconPlus } from "@tabler/icons-react";
 import {
   authAtom,
@@ -17,6 +17,25 @@ import { useDisclosure } from "@mantine/hooks";
 import AddListPlaceHolder from "./addListPlaceHolder";
 import DeleteListModal from "../_components/modals/deleteListModal";
 import EditListModal from "../_components/modals/editListModal";
+import {
+  closestCenter,
+  DndContext,
+  DragEndEvent,
+  DragOverlay,
+  DragStartEvent,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  horizontalListSortingStrategy,
+  rectSortingStrategy,
+  SortableContext,
+} from "@dnd-kit/sortable";
+import { ListWithTasks } from "~/server/types";
+import SortableList from "../_components/SortableList";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -29,6 +48,14 @@ export default function Dashboard() {
     { open: openCreateListModal, close: closeCreateListModal },
   ] = useDisclosure(false);
 
+  // for input methods detection
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { distance: 5 } }),
+  );
+  const [draggingList, setDraggingList] = useState<ListWithTasks | null>(null);
+
+  const swapIndexMutation = api.list.swapIndex.useMutation();
   const firstRender = useRef(true);
 
   // Fetch the list using TRPC query
@@ -58,6 +85,49 @@ export default function Dashboard() {
     }
   }, [isLoading]);
 
+  // triggered when dragging starts
+  const handleDragStart = (event: DragStartEvent) => {
+    console.log("starting drag");
+
+    const { active } = event;
+
+    const currentList = lists.filter((list) => list.id === active.id)[0]!;
+
+    console.log(currentList);
+    setDraggingList(currentList);
+  };
+
+  // triggered when dragging ends
+  const handleDragEnd = (event: DragEndEvent) => {
+    console.log("ending drag");
+    const { active, over } = event;
+
+    if (active.id !== over?.id) {
+      const oldIndex = lists.findIndex((list) => list.id === active.id);
+      const newIndex = lists.findIndex((list) => list.id === over?.id);
+
+      swapIndexMutation.mutate(
+        { userId: auth.id, id: draggingList!.id, index: newIndex },
+        {
+          onSuccess: (data) => {
+            console.log("List created:", data);
+            setLists((lists) => {
+              return arrayMove(lists!, oldIndex, newIndex);
+            });
+            setDraggingList(null);
+          },
+          onError: (error) => {
+            console.error("Error creating list:", error);
+          },
+        },
+      );
+    }
+  };
+
+  const handleDragCancel = () => {
+    setDraggingList(null);
+  };
+
   return (
     <div className="h-full w-full bg-blue-100">
       <div className="flex items-center justify-between text-center">
@@ -85,13 +155,34 @@ export default function Dashboard() {
       <div className="mt-8">
         {/* Render List Data */}
         {lists && lists.length > 0 ? (
-          <ul className="flex items-start justify-start gap-4">
-            {lists.map((list) => (
-              <List list={list} key={list.id} />
-            ))}
+          <>
+            <ul className="flex items-start justify-start gap-4">
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
+                onDragCancel={handleDragCancel}
+              >
+                <SortableContext
+                  items={lists.map((list) => list.id)}
+                  strategy={horizontalListSortingStrategy}
+                >
+                  {lists.map((list) => (
+                    <SortableList list={list} key={list.id} />
+                  ))}
+                </SortableContext>
 
-            <AddListPlaceHolder openCreateListModal={openCreateListModal} />
-          </ul>
+                <DragOverlay adjustScale style={{ transformOrigin: "0 0 " }}>
+                  {draggingList ? (
+                    <List list={draggingList} isDragging />
+                  ) : null}
+                </DragOverlay>
+              </DndContext>
+
+              <AddListPlaceHolder openCreateListModal={openCreateListModal} />
+            </ul>
+          </>
         ) : (
           !isLoading &&
           !isError && (

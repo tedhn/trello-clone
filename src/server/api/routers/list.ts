@@ -5,8 +5,6 @@ import { api } from "~/trpc/server";
 
 export const listRouter = createTRPCRouter({
   all: publicProcedure.input(z.string()).query(({ ctx, input }) => {
-    console.log(ctx.db.list);
-
     return ctx.db.list.findMany({
       where: {
         userId: input,
@@ -69,8 +67,6 @@ export const listRouter = createTRPCRouter({
       // Reassign indices to remaining lists
       const sortedList = await Promise.all(
         remainingLists.map((list, newIndex) => {
-          console.log(newIndex, list.name);
-
           return ctx.db.list.update({
             where: { id: list.id },
             data: { index: newIndex }, // Reindex starting from 1
@@ -121,5 +117,50 @@ export const listRouter = createTRPCRouter({
       });
 
       return updatedList;
+    }),
+
+  swapIndex: publicProcedure
+    .input(
+      z.object({
+        userId: z.string(),
+        id: z.string(), // The list's unique ID
+        index: z.number().optional(), // New index (optional)
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { id, index } = input;
+
+      // Find the list by its ID
+      const list = await ctx.db.list.findUnique({
+        where: { id, userId: input.userId },
+      });
+
+      // If the list doesn't exist, throw an error
+      if (!list) {
+        throw new Error("List not found");
+      }
+
+      const oldItemAtIndex = await ctx.db.list.findFirst({
+        where: {
+          index: index,
+          userId: input.userId,
+        },
+      });
+
+      // Update the list with the new order
+      await ctx.db.list.update({
+        where: { id, userId: input.userId },
+        data: { index: index },
+      });
+
+      await ctx.db.list.update({
+        where: { id: oldItemAtIndex?.id, userId: input.userId },
+        data: { index: list.index },
+      });
+
+      // Return the updated list
+      return ctx.db.list.findUnique({
+        where: { id, userId: input.userId },
+      });
     }),
 });
