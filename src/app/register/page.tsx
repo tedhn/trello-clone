@@ -95,10 +95,15 @@ export default function Register() {
               type="button"
               variant="subtle"
               onClick={() => router.push("/login")}
+              disabled={registerMutation.isPending}
             >
               Login
             </Button>
-            <Button fullWidth type="submit">
+            <Button
+              fullWidth
+              type="submit"
+              disabled={registerMutation.isPending}
+            >
               {registerMutation.isPending ? "Loading..." : "Register"}
             </Button>
           </div>

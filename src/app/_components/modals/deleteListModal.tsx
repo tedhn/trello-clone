@@ -40,11 +40,19 @@ const DeleteListModal: React.FC<ModalProps> = ({ close }) => {
         undone.
       </Text>
       <div className="mt-4 flex items-center justify-end gap-4">
-        <Button onClick={close} variant="default">
+        <Button
+          onClick={close}
+          variant="default"
+          disabled={deleteListMutation.isPending}
+        >
           Cancel
         </Button>
-        <Button color="red" onClick={() => handleDelete()}>
-          Delete
+        <Button
+          color="red"
+          onClick={() => handleDelete()}
+          disabled={deleteListMutation.isPending}
+        >
+          {deleteListMutation.isPending ? "Deleting..." : "Delete"}
         </Button>
       </div>
     </Modal>

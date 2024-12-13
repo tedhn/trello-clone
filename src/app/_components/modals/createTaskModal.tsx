@@ -40,7 +40,8 @@ const CreateTaskModal: React.FC<ModalProps> = ({ opened, close }) => {
 
         lists[newList.index] = newList;
 
-        setNewTaskQuery({ title: "", description: "" });
+        setTitle("");
+        setDescription("");
         close();
       }
     }
@@ -64,10 +65,19 @@ const CreateTaskModal: React.FC<ModalProps> = ({ opened, close }) => {
         className="mb-8 mt-4"
       />
       <div className="flex items-center justify-end gap-4">
-        <Button variant="outline" onClick={close}>
+        <Button
+          variant="outline"
+          onClick={close}
+          disabled={createTaskMutation.isPending}
+        >
           Cancel
         </Button>
-        <Button onClick={handleCreateTask}>Create</Button>
+        <Button
+          onClick={handleCreateTask}
+          disabled={createTaskMutation.isPending}
+        >
+          {createTaskMutation.isPending ? "Creating..." : "Create"}
+        </Button>
       </div>
     </Modal>
   );

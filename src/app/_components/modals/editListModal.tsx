@@ -67,10 +67,16 @@ const EditListModal: React.FC<ModalProps> = ({ opened, close }) => {
       />
 
       <div className="flex items-center justify-end gap-4">
-        <Button variant="outline" onClick={close}>
+        <Button
+          variant="outline"
+          onClick={close}
+          disabled={editListMutation.isPending}
+        >
           Cancel
         </Button>
-        <Button onClick={handleSubmit}>Save Changes</Button>
+        <Button onClick={handleSubmit} disabled={editListMutation.isPending}>
+          {editListMutation.isPending ? "Saving..." : "Save"}
+        </Button>
       </div>
     </Modal>
   );

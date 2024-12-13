@@ -1,7 +1,6 @@
 import { Checkbox } from "@mantine/core";
 import React, { useEffect, useState } from "react";
 import { Task } from "~/server/types";
-import { taskModal } from "./modals/taskModals";
 import { api } from "~/trpc/react";
 
 const TaskComponent: React.FC<{ task: Task }> = ({ task }) => {
