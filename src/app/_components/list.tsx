@@ -45,7 +45,7 @@ const ListComponent: React.FC<Props> = ({
       strategy={verticalListSortingStrategy}
     >
       <Paper
-        className="flex h-full w-80 flex-none flex-col items-center justify-start shadow-lg"
+        className="flex h-full max-h-[80%] w-80 flex-none flex-col items-center justify-start shadow-lg"
         p="md"
         radius="md"
         ref={setNodeRef}
