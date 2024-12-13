@@ -1,29 +1,92 @@
-# Create T3 App
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+# A Trello Clone
 
-## What's next? How do I make an app with this?
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+This project is a full-stack task board application similar to Trello, built with the following technologies:
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+Frontend: TypeScript, React, Next.js, tRPC, Mantine (UI Library), Jotai (State Management) , TailwindCss (Styling)
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+Backend: PostgreSQL, Prisma (ORM) , tRPC
+## Features
 
-## Learn More
+**Task Board Management:** Create, update, delete task lists and items.
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+**Drag-and-Drop Functionality**: Move items across lists.
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+**Persistence**: All data is stored in a PostgreSQL database.
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+**User Accounts**: Each user has their own task board.
 
-## How do I deploy this?
+**CI/CD** : Automated deployment using Vercel.
+## Demo
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+Give it a try @ https://trello-clone-sable-nine.vercel.app/dashboard
+
+## Running Locally
+
+#### Prerequisites
+
+    Node.js (LTS recommended)
+    Yarn or PNPM
+    Docker ( for containerization)
+
+Follow these steps to set up and run the project, configure the database, and start the application.
+
+#### 1. Clone the Repository
+Clone the project repository from GitHub (or other version control platforms) to your local machine:
+ 
+    git clone https://github.com/tedhn/trello-clone.git 
+
+#### 2. Install Dependencies
+
+Navigate to the project directory and install the required dependencies using pnpm:
+
+    cd trello-clone
+    pnpm install / yarn / npm install
+
+#### 3. Start the Database
+
+Execute the start-database.sh script to set up the local database. This script should configure and launch your PostgreSQL database for the project.
+
+Make sure that you have the script file start-database.sh in your project directory and that PostgreSQL is installed and configured on your machine.
+
+    ./start-database.sh
+
+#### 4. Push Database Schema
+
+Push the Prisma schema to the database using the following command:
+
+    pnpm db:push / yarn db:push / npm db:push
+
+#### 5. Open Prisma Studio (Optional)
+
+To view and interact with your database, you can launch Prisma Studio. This graphical interface allows you to manage your database models and records visually.
+
+Run the following command:
+
+    npx prisma studio
+
+#### 6. Start the Development Server
+
+Finally, start the development server to run the application. This will launch the project, allowing you to view it locally.
+
+    pnpm run dev / yarn dev / npm run dev
+
+
+## Screenshots
+
+Login / Register
+
+![Imgur](https://imgur.com/lJIk922.jpg)
+
+Dashboard
+
+
+![Imgur](https://imgur.com/2dmUnBU.jpg)
+
+
+## License
+
+This project is licensed under the [MIT](https://choosealicense.com/licenses/mit/) License.
+
+
